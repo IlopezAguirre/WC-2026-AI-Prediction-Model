@@ -10,7 +10,12 @@ import joblib
 import pandas as pd
 
 from backend.db.schema import get_connection, init_db
-from backend.ml.elo import compute_all_elos, save_elos_to_db
+from backend.ml.elo import (
+    EXTERNAL_ELO_PATH,
+    compute_all_elos,
+    load_external_elos,
+    save_elos_to_db,
+)
 from backend.ml.model import build_training_data, predict_goals, train_model
 
 MODEL_PATH = Path(__file__).parent.parent / "models" / "model.pkl"
@@ -39,8 +44,12 @@ def main() -> None:
     print(f"Loaded {len(matches_df):,} scored matches for training.")
 
     # ── 2. Compute Elo ratings ─────────────────────────────────────────────
-    print("Computing Elo ratings…")
-    current_ratings, elo_history_df = compute_all_elos(matches_df)
+    if EXTERNAL_ELO_PATH.exists():
+        print("External eloratings.csv found — using variable-K Elo ratings…")
+        current_ratings, elo_history_df = load_external_elos(matches_df)
+    else:
+        print("Computing Elo ratings (flat K=32)…")
+        current_ratings, elo_history_df = compute_all_elos(matches_df)
     save_elos_to_db(conn, elo_history_df)
     print(f"Elo history: {len(elo_history_df):,} rows  |  {len(current_ratings):,} teams rated.")
 

@@ -3,14 +3,36 @@
 All functions are pure (no I/O) except save_elos_to_db.
 Ratings start at DEFAULT_RATING = 1500 and are updated with K_FACTOR = 32
 after every match using the standard Elo formula.
+
+load_external_elos() provides an alternative to compute_all_elos() that uses
+a pre-computed eloratings.csv dataset (variable K-factors by match importance),
+falling back to self-computed ratings for any gaps (e.g. 2026 fixtures).
 """
 
 import sqlite3
+from pathlib import Path
 
 import pandas as pd
 
 DEFAULT_RATING: float = 1500.0
 K_FACTOR: float = 32.0
+
+EXTERNAL_ELO_PATH = Path(__file__).parent.parent / "data" / "raw" / "eloratings.csv"
+
+# Maps team names used in eloratings.csv → names used in results.csv.
+# Only entries where the two datasets disagree are listed.
+_ELO_TO_RESULTS: dict[str, str] = {
+    "United States": "USA",
+    "Democratic Republic of Congo": "DR Congo",
+    "Ireland": "Republic of Ireland",
+    "Czechia": "Czech Republic",
+    "China": "China PR",
+    "Surinam": "Suriname",
+    "Macedonia": "North Macedonia",
+    "Congo-Brazzaville": "Congo",
+    "East Timor": "Timor-Leste",
+}
+_RESULTS_TO_ELO: dict[str, str] = {v: k for k, v in _ELO_TO_RESULTS.items()}
 
 
 def expected_score(rating_a: float, rating_b: float) -> float:

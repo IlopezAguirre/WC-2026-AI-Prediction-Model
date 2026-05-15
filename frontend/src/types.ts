@@ -28,3 +28,9 @@ export interface TeamStanding {
 export interface Standings {
   [group: string]: TeamStanding[];
 }
+
+export type SimulationMode = 'official' | 'random' | 'custom';
+
+export interface CustomGroupsPayload {
+  groups: Record<string, string[]>;
+}

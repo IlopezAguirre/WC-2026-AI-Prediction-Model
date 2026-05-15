@@ -1,11 +1,18 @@
 import { useState } from 'react';
 import { OFFICIAL_TEAMS } from '../api/client';
+import { FlagIcon } from '../utils/flags';
 
 interface Props {
   onSimulate: (groups: Record<string, string[]>) => void;
 }
 
-const GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+const GROUP_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+
+const GROUP_COLORS: Record<string, string> = {
+  A: '#CCFF00', B: '#00D4FF', C: '#E8002D', D: '#FF6B00',
+  E: '#7B2FBE', F: '#CCFF00', G: '#00D4FF', H: '#E8002D',
+  I: '#FF6B00', J: '#7B2FBE', K: '#CCFF00', L: '#00D4FF',
+};
 
 const INITIAL_GROUPS: Record<string, string[]> = Object.fromEntries(
   GROUP_LETTERS.map((l) => [l, []]),
@@ -26,8 +33,7 @@ export function CustomDrawEditor({ onSimulate }: Props) {
   }
 
   function handleGroupClick(letter: string) {
-    if (!selected) return;
-    if (groups[letter].length >= 4) return;
+    if (!selected || groups[letter].length >= 4) return;
     setGroups((prev) => ({ ...prev, [letter]: [...prev[letter], selected] }));
     setSelected(null);
   }
@@ -51,31 +57,35 @@ export function CustomDrawEditor({ onSimulate }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Header + simulate button */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-white font-semibold">Custom Group Draw</h2>
-          <p className="text-slate-400 text-sm mt-0.5">
-            {assignedCount}/48 teams placed
+          <h2 className="text-white font-black text-xl uppercase tracking-tight">
+            Custom Group Draw
+          </h2>
+          <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-1">
+            {assignedCount}/48 placed
             {!isValid && assignedCount > 0 && (
-              <span className="ml-2 text-yellow-400">
-                — fill all groups to 4 teams each
-              </span>
+              <span style={{ color: '#CCFF00' }}> — fill all groups to 4</span>
             )}
           </p>
         </div>
         <button
           onClick={handleSimulate}
           disabled={!isValid || loading}
-          className={`px-5 py-2 rounded font-medium text-sm transition-colors ${
+          className={`px-5 py-2 font-black text-xs uppercase tracking-widest transition-opacity ${
             isValid && !loading
-              ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-              : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+              ? 'text-black hover:opacity-90 cursor-pointer'
+              : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
           }`}
+          style={isValid && !loading ? { backgroundColor: '#CCFF00' } : {}}
         >
           {loading ? (
             <span className="flex items-center gap-2">
-              <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+              <span
+                className="w-3 h-3 border-2 border-t-transparent animate-spin"
+                style={{ borderColor: '#CCFF00', borderTopColor: 'transparent' }}
+              />
               Simulating…
             </span>
           ) : (
@@ -84,28 +94,37 @@ export function CustomDrawEditor({ onSimulate }: Props) {
         </button>
       </div>
 
-      <div className="flex gap-6">
-        {/* Team pool */}
-        <div className="w-48 shrink-0">
-          <h3 className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-            Available ({pool.length})
-          </h3>
-          <div className="space-y-1 max-h-[600px] overflow-y-auto pr-1">
+      <div className="flex gap-5">
+        {/* Pool */}
+        <div className="w-44 shrink-0">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2" style={{ backgroundColor: '#CCFF00' }} />
+            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">
+              Pool ({pool.length})
+            </span>
+          </div>
+          <div className="space-y-0.5 max-h-[580px] overflow-y-auto pr-1">
             {pool.map((team) => (
               <button
                 key={team}
                 onClick={() => handlePoolClick(team)}
-                className={`w-full text-left px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`w-full text-left px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors ${
                   selected === team
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    ? 'text-black'
+                    : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white'
                 }`}
+                style={selected === team ? { backgroundColor: '#CCFF00' } : {}}
               >
-                {team}
+                <span className="flex items-center gap-1.5">
+                  <FlagIcon team={team} size={14} />
+                  {team}
+                </span>
               </button>
             ))}
             {pool.length === 0 && (
-              <p className="text-slate-600 text-xs italic">All teams placed</p>
+              <p className="text-zinc-700 text-[10px] font-black uppercase tracking-widest px-3 py-2">
+                All placed
+              </p>
             )}
           </div>
         </div>
@@ -115,54 +134,59 @@ export function CustomDrawEditor({ onSimulate }: Props) {
           {GROUP_LETTERS.map((letter) => {
             const teams = groups[letter];
             const full = teams.length === 4;
+            const accent = GROUP_COLORS[letter];
             return (
               <div
                 key={letter}
                 onClick={() => handleGroupClick(letter)}
-                className={`rounded-lg p-3 border transition-colors ${
+                className={`bg-zinc-950 border transition-colors overflow-hidden ${
                   full
-                    ? 'bg-slate-800 border-emerald-800'
+                    ? 'border-zinc-700'
                     : selected
-                    ? 'bg-slate-800 border-slate-600 cursor-pointer hover:border-emerald-500'
-                    : 'bg-slate-800 border-slate-700'
+                    ? 'border-zinc-600 cursor-pointer hover:border-zinc-400'
+                    : 'border-zinc-800'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    Group {letter}
-                  </span>
-                  <span
-                    className={`text-xs font-medium ${full ? 'text-emerald-400' : 'text-slate-600'}`}
-                  >
-                    {teams.length}/4
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  {teams.map((team) => (
-                    <div
-                      key={team}
-                      className="flex items-center justify-between bg-slate-700 rounded px-2 py-1"
-                      onClick={(e) => e.stopPropagation()}
+                <div className="h-0.5" style={{ backgroundColor: accent }} />
+                <div className="p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span
+                      className="text-black text-[9px] font-black px-1.5 py-0.5 uppercase tracking-wider"
+                      style={{ backgroundColor: accent }}
                     >
-                      <span className="text-white text-xs truncate">{team}</span>
-                      <button
-                        onClick={() => handleRemove(letter, team)}
-                        className="ml-1 text-slate-500 hover:text-red-400 transition-colors text-xs leading-none"
-                        title="Remove"
+                      Group {letter}
+                    </span>
+                    <span className="text-zinc-700 text-[10px] font-black">{teams.length}/4</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    {teams.map((team) => (
+                      <div
+                        key={team}
+                        className="flex items-center justify-between bg-zinc-900 px-2 py-1"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  {Array.from({ length: 4 - teams.length }).map((_, i) => (
-                    <div
-                      key={`empty-${i}`}
-                      className={`h-6 rounded border border-dashed ${
-                        selected ? 'border-emerald-700 bg-emerald-900/10' : 'border-slate-700'
-                      }`}
-                    />
-                  ))}
+                        <span className="flex items-center gap-1 text-white text-[10px] font-bold truncate">
+                          <FlagIcon team={team} size={14} />
+                          {team}
+                        </span>
+                        <button
+                          onClick={() => handleRemove(letter, team)}
+                          className="ml-1 text-zinc-600 hover:text-white transition-colors text-xs leading-none shrink-0"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    {Array.from({ length: 4 - teams.length }).map((_, i) => (
+                      <div
+                        key={`empty-${i}`}
+                        className={`h-5 border border-dashed ${
+                          selected ? 'border-zinc-600' : 'border-zinc-800'
+                        }`}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             );

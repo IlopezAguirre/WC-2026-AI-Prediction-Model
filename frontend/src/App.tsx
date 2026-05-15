@@ -8,6 +8,7 @@ import {
   simulateCustomGroups,
 } from './api/client';
 import { CustomDrawEditor } from './components/CustomDrawEditor';
+import { FlagGrid } from './components/FlagGrid';
 import { GroupStandings } from './components/GroupStandings';
 import { MatchCards } from './components/MatchCard';
 import { ProbabilityTable } from './components/ProbabilityTable';
@@ -41,15 +42,9 @@ export default function App() {
   const { predictions: livePredictions, connected } = useWebSocket();
 
   useEffect(() => {
-    fetchPredictions()
-      .then(setPredictions)
-      .catch((e: unknown) => setError(String(e)));
-    fetchMatches()
-      .then(setMatches)
-      .catch((e: unknown) => setError(String(e)));
-    fetchStandings()
-      .then(setStandings)
-      .catch((e: unknown) => setError(String(e)));
+    fetchPredictions().then(setPredictions).catch((e: unknown) => setError(String(e)));
+    fetchMatches().then(setMatches).catch((e: unknown) => setError(String(e)));
+    fetchStandings().then(setStandings).catch((e: unknown) => setError(String(e)));
   }, []);
 
   useEffect(() => {
@@ -96,67 +91,79 @@ export default function App() {
     mode === 'official' ? (livePredictions ?? predictions) : customPredictions;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-black text-white">
 
-      {/* ── Hero Section ────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-slate-900">
-        {/* Ambient glow blobs */}
-        <div className="absolute -top-24 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-24 right-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-        {/* Bottom gradient fade */}
-        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
+      {/* FIFA colour strip */}
+      <div className="flex h-1">
+        {['#CCFF00', '#00D4FF', '#E8002D', '#FF6B00', '#7B2FBE'].map((c) => (
+          <div key={c} className="flex-1" style={{ backgroundColor: c }} />
+        ))}
+      </div>
 
-        <div className="relative text-center px-6 pt-14 pb-12">
-          <div className="text-5xl mb-3">🏆</div>
-          <p className="text-emerald-400 text-xs font-bold tracking-[0.3em] uppercase mb-3">
-            World Cup 2026
+      {/* Hero */}
+      <div className="relative bg-black overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
+        >
+          <span className="text-[35vw] font-black text-white opacity-[0.025] leading-none tracking-tighter">
+            26
+          </span>
+        </div>
+
+        <div className="relative text-center px-6 pt-12 pb-10">
+          <p
+            className="text-xs font-black tracking-[0.35em] uppercase mb-3"
+            style={{ color: '#CCFF00' }}
+          >
+            FIFA · World Cup · 2026
           </p>
-          <h1 className="text-[clamp(3rem,10vw,7rem)] font-black tracking-tight text-white leading-none mb-5">
+          <h1
+            className="font-black uppercase leading-none tracking-tighter mb-5 text-white"
+            style={{ fontSize: 'clamp(3.5rem, 14vw, 8.5rem)' }}
+          >
             PREDICTOR
           </h1>
-          <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">
-            Monte Carlo simulation using Poisson GLM + Elo ratings.
+          <p className="text-zinc-500 text-sm max-w-xs mx-auto leading-relaxed">
+            Monte Carlo simulation · Poisson GLM · Elo ratings
             <br />
-            10,000 scenarios per draw.
+            10,000 scenarios per draw
           </p>
-
-          {/* Live indicator */}
-          <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/80 border border-slate-700/60 rounded-full text-xs">
-            <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-            <span className="text-slate-400">{connected ? 'Live updates on' : 'Live updates off'}</span>
+          <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 border border-zinc-800 text-[10px] font-black uppercase tracking-widest">
+            <span
+              className={`w-1.5 h-1.5 ${connected ? 'animate-pulse' : ''}`}
+              style={{ backgroundColor: connected ? '#CCFF00' : '#3f3f46' }}
+            />
+            <span className="text-zinc-500">{connected ? 'Live' : 'Offline'}</span>
           </div>
         </div>
       </div>
 
-      {/* ── Mode Switcher ───────────────────────────────────────────── */}
-      <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <div className="flex gap-2">
+      {/* Sticky nav */}
+      <div className="sticky top-0 z-10 bg-black border-b border-zinc-900">
+        <div className="px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-2 flex-wrap">
             {(['official', 'random', 'custom'] as SimulationMode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => switchMode(m)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all ${
-                  mode === m
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                    : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 border border-slate-700'
+                className={`px-4 py-1.5 text-xs font-black uppercase tracking-wider transition-colors ${
+                  mode === m ? 'text-black' : 'border border-zinc-700 text-zinc-500 hover:text-white hover:border-zinc-500'
                 }`}
+                style={mode === m ? { backgroundColor: '#CCFF00' } : {}}
               >
                 {MODE_LABELS[m]}
               </button>
             ))}
           </div>
 
-          {/* Tab nav right-aligned */}
-          <div className="flex gap-1 border border-slate-700/60 rounded-lg p-0.5 bg-slate-800/60">
+          <div className="flex border border-zinc-800">
             {(['predictions', 'matches', 'standings'] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  tab === t
-                    ? 'bg-slate-700 text-white'
-                    : 'text-slate-500 hover:text-slate-300'
+                className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                  tab === t ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:text-zinc-300'
                 }`}
               >
                 {TAB_LABELS[t]}
@@ -166,113 +173,116 @@ export default function App() {
         </div>
       </div>
 
-      {/* ── Main Content ─────────────────────────────────────────────── */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      {/* Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Error banner */}
         {error && (
-          <div className="mb-6 p-4 bg-red-900/20 border border-red-800/60 rounded-xl text-red-400 text-sm flex items-start gap-3">
-            <span className="text-lg leading-none mt-0.5">⚠️</span>
-            <span>{error}</span>
+          <div
+            className="mb-6 p-4 border text-sm flex items-start gap-3 font-bold"
+            style={{ borderColor: '#E8002D', backgroundColor: 'rgba(232,0,45,0.07)', color: '#E8002D' }}
+          >
+            <span className="font-black text-base leading-none mt-0.5 shrink-0">!</span>
+            {error}
           </div>
         )}
 
-        {/* Sim note */}
         {simNote && (
-          <div className="mb-6 p-3 bg-slate-800/60 border border-slate-700/60 rounded-xl text-slate-400 text-sm flex items-center gap-2">
-            <span>✦</span>
-            <span>{simNote}</span>
+          <div className="mb-6 p-3 border border-zinc-800 bg-zinc-950 text-xs font-black uppercase tracking-widest flex items-center gap-2">
+            <span style={{ color: '#CCFF00' }}>◆</span>
+            <span className="text-zinc-400">{simNote}</span>
           </div>
         )}
 
-        {/* Loading state */}
         {simLoading && (
-          <div className="mb-6 p-5 bg-slate-800 border border-slate-700/60 rounded-xl flex items-center gap-4">
+          <div className="mb-6 p-5 bg-zinc-950 border border-zinc-800 flex items-center gap-4">
             <div className="relative w-8 h-8 shrink-0">
-              <div className="absolute inset-0 rounded-full border-2 border-slate-700" />
-              <div className="absolute inset-0 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
+              <div className="absolute inset-0 border-2 border-zinc-800" />
+              <div
+                className="absolute inset-0 border-2 border-t-transparent animate-spin"
+                style={{ borderColor: '#CCFF00', borderTopColor: 'transparent' }}
+              />
             </div>
             <div>
-              <p className="text-white text-sm font-medium">Running 10,000 simulations…</p>
-              <p className="text-slate-500 text-xs mt-0.5">This takes about 30 seconds</p>
+              <p className="text-white text-sm font-black uppercase tracking-wide">
+                Running 10,000 simulations…
+              </p>
+              <p className="text-zinc-600 text-xs mt-0.5 uppercase tracking-wider font-bold">
+                ~30 seconds
+              </p>
             </div>
           </div>
         )}
 
-        {/* Custom Draw mode — show editor until results */}
         {mode === 'custom' && !customPredictions && !simLoading && (
           <CustomDrawEditor onSimulate={handleCustomSimulate} />
         )}
 
-        {/* Random mode — show shuffle CTA until results */}
         {mode === 'random' && !customPredictions && !simLoading && (
-          <div className="flex flex-col items-start gap-4 p-6 bg-slate-800/40 border border-slate-700/60 rounded-xl">
-            <div>
-              <h2 className="text-white font-bold text-lg mb-1">Random Draw</h2>
-              <p className="text-slate-400 text-sm max-w-md">
-                Randomly redistribute all 48 qualified teams into 12 groups of 4 and run a full
-                Monte Carlo simulation. See how luck of the draw changes everything.
-              </p>
-            </div>
+          <div className="p-6 bg-zinc-950 border border-zinc-800">
+            <h2 className="text-white font-black text-2xl uppercase tracking-tight mb-2">
+              Random Draw
+            </h2>
+            <p className="text-zinc-500 text-sm max-w-md mb-6 leading-relaxed">
+              Randomly redistribute all 48 qualified teams into 12 groups and run a full
+              Monte Carlo simulation. See how the luck of the draw changes everything.
+            </p>
             <button
               onClick={handleRandomShuffle}
-              className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 rounded-lg font-semibold text-sm transition-colors shadow-lg shadow-emerald-500/20"
+              className="px-6 py-2.5 font-black text-sm uppercase tracking-wider text-black hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: '#CCFF00' }}
             >
               Shuffle &amp; Simulate
             </button>
           </div>
         )}
 
-        {/* Predictions tab */}
         {tab === 'predictions' && (mode === 'official' || customPredictions) && (
           shownPredictions ? (
             <ProbabilityTable predictions={shownPredictions} />
           ) : (
-            <div className="text-center py-16 text-slate-600">
-              <div className="text-4xl mb-3">⏳</div>
-              <p>Loading predictions…</p>
+            <div className="text-center py-20 text-zinc-700 font-black uppercase tracking-widest text-xs">
+              Loading…
             </div>
           )
         )}
 
-        {/* Matches tab */}
         {tab === 'matches' && mode === 'official' && (
           matches ? (
             <MatchCards matches={matches} />
           ) : (
-            <div className="text-center py-16 text-slate-600">
-              <div className="text-4xl mb-3">⏳</div>
-              <p>Loading matches…</p>
+            <div className="text-center py-20 text-zinc-700 font-black uppercase tracking-widest text-xs">
+              Loading…
             </div>
           )
         )}
         {tab === 'matches' && mode !== 'official' && (
-          <p className="text-slate-600 text-sm py-8">
-            Match predictions are available in Official Draw mode.
+          <p className="text-zinc-700 text-xs font-black uppercase tracking-widest py-12">
+            Match predictions available in Official Draw mode.
           </p>
         )}
 
-        {/* Standings tab */}
         {tab === 'standings' && mode === 'official' && (
           standings ? (
             <GroupStandings standings={standings} />
           ) : (
-            <div className="text-center py-16 text-slate-600">
-              <div className="text-4xl mb-3">⏳</div>
-              <p>Loading standings…</p>
+            <div className="text-center py-20 text-zinc-700 font-black uppercase tracking-widest text-xs">
+              Loading…
             </div>
           )
         )}
         {tab === 'standings' && mode !== 'official' && (
-          <p className="text-slate-600 text-sm py-8">
-            Group standings are available in Official Draw mode.
+          <p className="text-zinc-700 text-xs font-black uppercase tracking-widest py-12">
+            Group standings available in Official Draw mode.
           </p>
         )}
+
+        <FlagGrid />
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 mt-16 px-6 py-6 text-center text-slate-600 text-xs">
-        Powered by Poisson GLM + Elo · 10,000 Monte Carlo simulations · WC 2026
+      <footer className="border-t border-zinc-900 mt-16 px-6 py-6 text-center">
+        <p className="text-zinc-700 text-[10px] font-black uppercase tracking-widest">
+          Poisson GLM + Elo · 10,000 Monte Carlo Simulations · WC 2026
+        </p>
       </footer>
     </div>
   );

@@ -1,4 +1,5 @@
 import type { Match } from '../types';
+import { flag } from '../utils/flags';
 
 interface Props {
   matches: Match[];
@@ -20,28 +21,48 @@ export function MatchCards({ matches }: Props) {
         .sort()
         .map(([group, groupMatches]) => (
           <div key={group}>
-            <h3 className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">
-              Group {group}
-            </h3>
+            {/* Group label with divider */}
+            <div className="flex items-center gap-3 mb-4">
+              <h3 className="text-white font-bold text-sm uppercase tracking-wider shrink-0">
+                Group {group}
+              </h3>
+              <div className="h-px flex-1 bg-slate-700/60" />
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {groupMatches.map((m) => (
                 <div
                   key={`${m.home}-${m.away}`}
-                  className="bg-slate-800 rounded-lg p-4 flex items-center justify-between gap-2"
+                  className="bg-slate-800 rounded-xl border border-slate-700/60 p-4 hover:border-slate-600 transition-colors"
                 >
-                  <span className="text-white text-sm font-medium text-right flex-1">
-                    {m.home}
-                  </span>
-                  <div className="text-center shrink-0">
-                    <span className="text-emerald-400 font-bold text-lg">
+                  {/* Home row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xl leading-none shrink-0">{flag(m.home)}</span>
+                      <span className="text-white text-sm font-medium truncate">{m.home}</span>
+                    </div>
+                    <span className="text-emerald-400 font-bold text-xl tabular-nums ml-3 shrink-0">
                       {m.predicted_home_goals.toFixed(1)}
                     </span>
-                    <span className="text-slate-500 mx-1">–</span>
-                    <span className="text-emerald-400 font-bold text-lg">
+                  </div>
+
+                  {/* VS divider */}
+                  <div className="relative my-3 border-t border-slate-700/60">
+                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 px-2 text-slate-600 text-[10px] uppercase tracking-widest">
+                      vs
+                    </span>
+                  </div>
+
+                  {/* Away row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xl leading-none shrink-0">{flag(m.away)}</span>
+                      <span className="text-white text-sm font-medium truncate">{m.away}</span>
+                    </div>
+                    <span className="text-emerald-400 font-bold text-xl tabular-nums ml-3 shrink-0">
                       {m.predicted_away_goals.toFixed(1)}
                     </span>
                   </div>
-                  <span className="text-white text-sm font-medium flex-1">{m.away}</span>
                 </div>
               ))}
             </div>

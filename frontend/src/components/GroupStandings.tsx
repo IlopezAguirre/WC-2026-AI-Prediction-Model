@@ -1,4 +1,5 @@
 import type { Standings } from '../types';
+import { flag } from '../utils/flags';
 
 interface Props {
   standings: Standings;
@@ -10,40 +11,82 @@ export function GroupStandings({ standings }: Props) {
       {Object.entries(standings)
         .sort()
         .map(([group, teams]) => (
-          <div key={group} className="bg-slate-800 rounded-lg p-4">
-            <h3 className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">
-              Group {group}
-            </h3>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-slate-500 text-xs">
-                  <th className="text-left pb-1">Team</th>
-                  <th className="text-right pb-1">Pts</th>
-                  <th className="text-right pb-1">GF</th>
-                  <th className="text-right pb-1">GA</th>
-                  <th className="text-right pb-1">GD</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teams.map((t, i) => (
-                  <tr
-                    key={t.team}
-                    className={`border-t border-slate-700 ${i < 2 ? 'text-white' : 'text-slate-400'}`}
-                  >
-                    <td className="py-1">
-                      {i < 2 && (
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 mb-0.5" />
-                      )}
-                      {t.team}
-                    </td>
-                    <td className="text-right font-semibold">{t.points}</td>
-                    <td className="text-right">{t.gf}</td>
-                    <td className="text-right">{t.ga}</td>
-                    <td className="text-right">{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
-                  </tr>
+          <div
+            key={group}
+            className="bg-slate-800 rounded-xl border border-slate-700/60 overflow-hidden"
+          >
+            {/* Card header */}
+            <div className="px-4 py-3 border-b border-slate-700/60 flex items-center justify-between bg-slate-800/80">
+              <span className="text-white font-bold tracking-wide text-sm">
+                Group {group}
+              </span>
+              <div className="flex gap-1.5">
+                {teams.map((t) => (
+                  <span key={t.team} title={t.team} className="text-base leading-none">
+                    {flag(t.team)}
+                  </span>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
+
+            {/* Standings rows */}
+            <div className="divide-y divide-slate-700/40">
+              {teams.map((t, i) => (
+                <div
+                  key={t.team}
+                  className={`flex items-center px-4 py-2.5 gap-3 transition-colors ${
+                    i < 2 ? 'hover:bg-slate-700/40' : 'opacity-70 hover:bg-slate-700/20'
+                  }`}
+                >
+                  {/* Position badge */}
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                      i === 0
+                        ? 'bg-yellow-500 text-slate-900'
+                        : i === 1
+                        ? 'bg-slate-400 text-slate-900'
+                        : 'bg-slate-700 text-slate-500'
+                    }`}
+                  >
+                    {i + 1}
+                  </div>
+
+                  {/* Flag + name */}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-base leading-none shrink-0">{flag(t.team)}</span>
+                    <span
+                      className={`text-sm truncate ${
+                        i < 2 ? 'text-white font-medium' : 'text-slate-400'
+                      }`}
+                    >
+                      {t.team}
+                    </span>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-3 text-xs shrink-0">
+                    <span
+                      className={`font-bold tabular-nums ${
+                        i < 2 ? 'text-emerald-400' : 'text-slate-600'
+                      }`}
+                    >
+                      {t.points}pt
+                    </span>
+                    <span className="text-slate-600 tabular-nums w-8 text-right">
+                      {t.gd > 0 ? `+${t.gd}` : t.gd}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Qualifier bar */}
+            <div className="px-4 py-2 bg-slate-900/40 border-t border-slate-700/40">
+              <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70 shrink-0" />
+                Top 2 advance to Round of 32
+              </div>
+            </div>
           </div>
         ))}
     </div>
